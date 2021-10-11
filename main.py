@@ -1,4 +1,4 @@
 from server import *
 
-server = Server(Router)
+server = Server(Manager, Router)
 server.run()
