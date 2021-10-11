@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import typing
 import inspect
+from dataclasses import asdict
 
 from aiohttp.web import Request, Response, RouteDef
+from aiohttp.web_response import json_response
 
 if typing.TYPE_CHECKING:
     from ..server import Server
@@ -31,6 +33,7 @@ class Router:
 
     def __init__(self, server: Server) -> None:
         self.server = server
+        self.manager = server.manager
 
     @property
     def routes(self) -> typing.Generator[RouteDef, None, None]:
@@ -43,3 +46,19 @@ class Router:
     @route(method="GET", path='/')
     async def index(self, request: Request) -> Response:
         return Response(body="Hello, World!")
+
+    @route(method="GET", path="/games")
+    async def list_games(self, request: Request) -> Response:
+        data = []
+        return json_response(data)
+
+    @route(method="GET", path="/games/{id}")
+    async def get_game(self, request: Request) -> Response:
+        id_ = request.match_info["id"]
+
+        game = self.manager.get_game(id_)
+        if not game:
+            return Response(text="Game not found", status=404)
+
+        data = asdict(game)
+        return json_response(data)
